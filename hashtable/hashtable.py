@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from functools import reduce
 from typing import Any, List, Optional
 
 
@@ -70,26 +71,25 @@ class HashTable:
         """
         FNV-1 Hash, 64-bit
         """
-
-        fnv_prime = 0x100000001B3
-        hash_key = 0xCBF29CE484222325
-
-        for letter in key:
-            hash_key = hash_key ^ ord(letter)
-            hash_key = hash_key * fnv_prime
-
-        return hash_key
+        return reduce(
+            lambda hash_key, letter: (hash_key ^ ord(letter)) * 0x100000001B3,
+            key,
+            0xCBF29CE484222325,
+        )
 
     @staticmethod
     def djb2(key: str) -> int:
         """
         DJB2 hash, 32-bit
         """
-        hash_key = 5381
-        for letter in key:
-            hash_key = ((hash_key << 5) + hash_key) + ord(letter)
-
-        return hash_key & 0xFFFFFFFF
+        return (
+            reduce(
+                lambda hash_key, letter: ((hash_key << 5) + hash_key) + ord(letter),
+                key,
+                5381,
+            )
+            & 0xFFFFFFFF
+        )
 
     def hash_index(self, key: str) -> int:
         """
