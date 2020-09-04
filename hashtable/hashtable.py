@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from typing import Any
+from typing import Any, List, Optional
 
 
 class HashTableEntry:
@@ -33,16 +33,19 @@ class HashTable:
     """
     A hash table that with `capacity` buckets
     that accepts string keys
-
-    Implement this.
     """
 
-    def __init__(self, capacity: int):
+    def __init__(self, capacity: int = MIN_CAPACITY):
         self._capacity = capacity
+        self._storage = [None] * capacity
 
     @property
     def capacity(self) -> int:
         return self._capacity
+
+    @property
+    def storage(self) -> List[Optional[int]]:
+        return self._storage
 
     def get_num_slots(self):
         """
@@ -51,8 +54,6 @@ class HashTable:
         but the number of slots in the main list.)
 
         One of the tests relies on this.
-
-        Implement this.
         """
 
         return self.capacity
@@ -60,38 +61,32 @@ class HashTable:
     def get_load_factor(self):
         """
         Return the load factor for this hash table.
-
-        Implement this.
         """
         # Your code here
         pass
 
-    def fnv1(self, key: str) -> int:
+    @staticmethod
+    def fnv1(key: str) -> int:
         """
         FNV-1 Hash, 64-bit
-
-        Implement this, and/or DJB2.
         """
 
-        FNV_PRIME = 1099511628211
-        hash = 14695981039346656037
+        fnv_prime = 1099511628211
+        hash_key = 14695981039346656037
 
         for letter in key:
-            hash = hash ^ ord(letter)
-            hash = hash * FNV_PRIME
+            hash_key = hash_key ^ ord(letter)
+            hash_key = hash_key * fnv_prime
 
-        return hash
+        return hash_key
 
     def djb2(self, key):
         """
         DJB2 hash, 32-bit
-
-        Implement this, and/or FNV-1.
         """
-        # Your code here
         pass
 
-    def hash_index(self, key):
+    def hash_index(self, key: str) -> int:
         """
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
@@ -99,38 +94,35 @@ class HashTable:
         return self.fnv1(key) % self.capacity
         # return self.djb2(key) % self.capacity
 
-    def put(self, key, value):
+    def put(self, key: str, value: Any) -> None:
         """
         Store the value with the given key.
 
         Hash collisions should be handled with Linked List Chaining.
-
-        Implement this.
         """
-        # Your code here
-        pass
+        self.storage[self.hash_index(key)] = value
 
-    def delete(self, key):
+    def delete(self, key: str) -> None:
         """
         Remove the value stored with the given key.
 
         Print a warning if the key is not found.
-
-        Implement this.
         """
-        # Your code here
-        pass
+        try:
+            del self.storage[self.hash_index(key)]
+        except IndexError:
+            print("Key not found")
 
-    def get(self, key):
+    def get(self, key: str) -> Optional[Any]:
         """
         Retrieve the value stored with the given key.
 
         Returns None if the key is not found.
-
-        Implement this.
         """
-        # Your code here
-        pass
+        try:
+            return self.storage[self.hash_index(key)]
+        except IndexError:
+            return None
 
     def resize(self, new_capacity):
         """
