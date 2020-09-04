@@ -71,8 +71,8 @@ class HashTable:
         FNV-1 Hash, 64-bit
         """
 
-        fnv_prime = 1099511628211
-        hash_key = 14695981039346656037
+        fnv_prime = 0x100000001B3
+        hash_key = 0xCBF29CE484222325
 
         for letter in key:
             hash_key = hash_key ^ ord(letter)
@@ -80,11 +80,16 @@ class HashTable:
 
         return hash_key
 
-    def djb2(self, key):
+    @staticmethod
+    def djb2(key: str) -> int:
         """
         DJB2 hash, 32-bit
         """
-        pass
+        hash_key = 5381
+        for letter in key:
+            hash_key = ((hash_key << 5) + hash_key) + ord(letter)
+
+        return hash_key & 0xFFFFFFFF
 
     def hash_index(self, key: str) -> int:
         """
