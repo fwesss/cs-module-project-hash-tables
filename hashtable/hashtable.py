@@ -92,6 +92,8 @@ class LinkedList:
                 previous.next = previous.next.next
                 self.size -= 1
                 return None
+            else:
+                previous = previous.next
 
         return None
 
@@ -114,9 +116,17 @@ class HashTable:
     def capacity(self) -> int:
         return self._capacity
 
+    @capacity.setter
+    def capacity(self, value: int) -> None:
+        self._capacity = value
+
     @property
     def storage(self) -> List[LinkedList]:
         return self._storage
+
+    @storage.setter
+    def storage(self, value) -> None:
+        self._storage = value
 
     def get_num_slots(self):
         """
@@ -174,13 +184,16 @@ class HashTable:
         return self.fnv1(key) % self.capacity
         # return self.djb2(key) % self.capacity
 
-    def put(self, key: str, value: Any) -> None:
+    def put(self, key: str, value: Any, store=None) -> None:
         """
         Store the value with the given key.
 
         Hash collisions should be handled with Linked List Chaining.
         """
-        self.storage[self.hash_index(key)].put(key, value)
+        if store is None:
+            self.storage[self.hash_index(key)].put(key, value)
+        else:
+            store[self.hash_index(key)].put(key, value)
 
     def delete(self, key: str) -> None:
         """
@@ -190,6 +203,11 @@ class HashTable:
         """
         try:
             self.storage[self.hash_index(key)].delete(key)
+            load = self.get_load_factor()
+            if load > 0.7:
+                self.resize(self.capacity * 2)
+            elif load < 0.2 and self.capacity >= MIN_CAPACITY * 2:
+                self.resize(self.capacity // 2)
         except IndexError:
             print("Key not found")
 
@@ -204,12 +222,21 @@ class HashTable:
         except IndexError:
             return None
 
-    def resize(self, new_capacity):
+    def resize(self, new_capacity: int) -> None:
         """
         Changes the capacity of the hash table and
         rehashes all key/value pairs.
         """
-        pass
+        self.capacity = new_capacity
+        new_storage = [LinkedList() for _ in range(self.capacity)]
+
+        for linked_list in self.storage:
+            current = linked_list.head.next
+            while current is not None:
+                self.put(current.key, current.value, new_storage)
+                current = current.next
+
+        self.storage = new_storage
 
 
 if __name__ == "__main__":
