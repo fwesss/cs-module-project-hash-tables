@@ -3,6 +3,108 @@ from functools import reduce
 from typing import Any, List, Optional
 
 
+class ListNode:
+    def __init__(self, key: Optional[str], value: Any):
+        self._key = key
+        self._value = value
+        self._next = None
+
+    @property
+    def key(self) -> str:
+        return self._key
+
+    @property
+    def value(self) -> Any:
+        return self._value
+
+    @value.setter
+    def value(self, value: Any):
+        self._value = value
+
+    @property
+    def next(self):
+        return self._next
+
+    @next.setter
+    def next(self, node):
+        self._next = node
+
+
+class LinkedList:
+    def __init__(self):
+        self._size = 0
+        self._head = ListNode(None, None)
+
+    @property
+    def size(self) -> int:
+        return self._size
+
+    @size.setter
+    def size(self, value: int):
+        self._size = value
+
+    @property
+    def head(self) -> ListNode:
+        return self._head
+
+    def _find(self, key: str) -> Optional[ListNode]:
+        if self.size == 0:
+            return None
+
+        current = self.head
+        while current is not None:
+            if current.key == key:
+                return current
+
+            current = current.next
+
+        return None
+
+    def _add(self, key: str, value: Any):
+        new_node = ListNode(key, value)
+        new_node.next = self.head.next
+        self.head.next = new_node
+        self.size += 1
+
+    def put(self, key: str, value: Any) -> None:
+        if self.size == 0:
+            print("size before: ", self.size)
+            self._add(key, value)
+            # self.traverse()
+            print("size after: ", self.size)
+        else:
+            node_to_update = self._find(key)
+            if node_to_update:
+                node_to_update.value = value
+            else:
+                self._add(key, value)
+
+    def get(self, key: str) -> Optional[Any]:
+        if self.size == 0:
+            return None
+
+        return self._find(key).value
+
+    def delete(self, key: str) -> None:
+        if self.size == 0:
+            return None
+
+        previous = self.head
+        while previous.next is not None:
+            if previous.next.key == key:
+                previous.next = previous.next.next
+                self.size -= 1
+                return None
+
+        return None
+
+    def traverse(self):
+        current_node = self.head
+        while current_node is not None:
+            print(current_node.key, current_node.value)
+            current_node = current_node.next
+
+
 class HashTableEntry:
     """
     Linked List hash table key/value pair
@@ -38,14 +140,14 @@ class HashTable:
 
     def __init__(self, capacity: int = MIN_CAPACITY):
         self._capacity = capacity
-        self._storage = [None] * capacity
+        self._storage = [LinkedList()] * capacity
 
     @property
     def capacity(self) -> int:
         return self._capacity
 
     @property
-    def storage(self) -> List[Optional[int]]:
+    def storage(self) -> List[LinkedList]:
         return self._storage
 
     def get_num_slots(self):
@@ -56,15 +158,30 @@ class HashTable:
 
         One of the tests relies on this.
         """
-
         return self.capacity
 
     def get_load_factor(self):
         """
         Return the load factor for this hash table.
         """
-        # Your code here
-        pass
+        print("1\n", self.storage[0].traverse())
+        print("2\n", self.storage[1].traverse())
+        sum = 0
+        for lst in self.storage:
+            # print(lst.size)
+            # lst.traverse()
+            sum += lst.size
+
+        return sum / self.capacity
+        #
+        # return (
+        #     reduce(
+        #         lambda accumulator, linked_list: accumulator + linked_list.size,
+        #         self.storage,
+        #         0,
+        #     )
+        #     / self.capacity
+        # )
 
     @staticmethod
     def fnv1(key: str) -> int:
@@ -86,7 +203,7 @@ class HashTable:
             reduce(
                 lambda hash_key, letter: ((hash_key << 5) + hash_key) + ord(letter),
                 key,
-                5381,
+                0x1505,
             )
             & 0xFFFFFFFF
         )
@@ -105,7 +222,8 @@ class HashTable:
 
         Hash collisions should be handled with Linked List Chaining.
         """
-        self.storage[self.hash_index(key)] = value
+        print(self.storage[self.hash_index(key)])
+        self.storage[self.hash_index(key)].put(key, value)
 
     def delete(self, key: str) -> None:
         """
@@ -114,7 +232,7 @@ class HashTable:
         Print a warning if the key is not found.
         """
         try:
-            del self.storage[self.hash_index(key)]
+            self.storage[self.hash_index(key)].delete(key)
         except IndexError:
             print("Key not found")
 
@@ -125,7 +243,7 @@ class HashTable:
         Returns None if the key is not found.
         """
         try:
-            return self.storage[self.hash_index(key)]
+            return self.storage[self.hash_index(key)].get(key)
         except IndexError:
             return None
 
@@ -133,10 +251,7 @@ class HashTable:
         """
         Changes the capacity of the hash table and
         rehashes all key/value pairs.
-
-        Implement this.
         """
-        # Your code here
         pass
 
 
