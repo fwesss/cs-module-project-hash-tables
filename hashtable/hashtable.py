@@ -3,7 +3,7 @@ from functools import reduce
 from typing import Any, List, Optional
 
 
-class ListNode:
+class HashTableEntry:
     def __init__(self, key: Optional[str], value: Any):
         self._key = key
         self._value = value
@@ -33,7 +33,7 @@ class ListNode:
 class LinkedList:
     def __init__(self):
         self._size = 0
-        self._head = ListNode(None, None)
+        self._head = HashTableEntry(None, None)
 
     @property
     def size(self) -> int:
@@ -44,10 +44,10 @@ class LinkedList:
         self._size = value
 
     @property
-    def head(self) -> ListNode:
+    def head(self) -> HashTableEntry:
         return self._head
 
-    def _find(self, key: str) -> Optional[ListNode]:
+    def _find(self, key: str) -> Optional[HashTableEntry]:
         if self.size == 0:
             return None
 
@@ -60,18 +60,15 @@ class LinkedList:
 
         return None
 
-    def _add(self, key: str, value: Any):
-        new_node = ListNode(key, value)
+    def _add(self, key: str, value: Any) -> None:
+        new_node = HashTableEntry(key, value)
         new_node.next = self.head.next
         self.head.next = new_node
         self.size += 1
 
     def put(self, key: str, value: Any) -> None:
         if self.size == 0:
-            print("size before: ", self.size)
             self._add(key, value)
-            # self.traverse()
-            print("size after: ", self.size)
         else:
             node_to_update = self._find(key)
             if node_to_update:
@@ -98,35 +95,6 @@ class LinkedList:
 
         return None
 
-    def traverse(self):
-        current_node = self.head
-        while current_node is not None:
-            print(current_node.key, current_node.value)
-            current_node = current_node.next
-
-
-class HashTableEntry:
-    """
-    Linked List hash table key/value pair
-    """
-
-    def __init__(self, key: str, value: Any):
-        self._key = key
-        self._value = value
-        self._next = None
-
-    @property
-    def key(self) -> str:
-        return self._key
-
-    @property
-    def value(self) -> Any:
-        return self._value
-
-    @property
-    def next(self):
-        return self._next
-
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
@@ -140,7 +108,7 @@ class HashTable:
 
     def __init__(self, capacity: int = MIN_CAPACITY):
         self._capacity = capacity
-        self._storage = [LinkedList()] * capacity
+        self._storage = [LinkedList() for _ in range(capacity)]
 
     @property
     def capacity(self) -> int:
@@ -164,24 +132,14 @@ class HashTable:
         """
         Return the load factor for this hash table.
         """
-        print("1\n", self.storage[0].traverse())
-        print("2\n", self.storage[1].traverse())
-        sum = 0
-        for lst in self.storage:
-            # print(lst.size)
-            # lst.traverse()
-            sum += lst.size
-
-        return sum / self.capacity
-        #
-        # return (
-        #     reduce(
-        #         lambda accumulator, linked_list: accumulator + linked_list.size,
-        #         self.storage,
-        #         0,
-        #     )
-        #     / self.capacity
-        # )
+        return (
+            reduce(
+                lambda accumulator, linked_list: accumulator + linked_list.size,
+                self.storage,
+                0,
+            )
+            / self.capacity
+        )
 
     @staticmethod
     def fnv1(key: str) -> int:
@@ -222,7 +180,6 @@ class HashTable:
 
         Hash collisions should be handled with Linked List Chaining.
         """
-        print(self.storage[self.hash_index(key)])
         self.storage[self.hash_index(key)].put(key, value)
 
     def delete(self, key: str) -> None:
