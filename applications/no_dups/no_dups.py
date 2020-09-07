@@ -1,6 +1,10 @@
 def no_dups(s):
-    # Your code here
+    unique = {}
+    for index, word in enumerate(s.split()):
+        if word not in unique:
+            unique[word] = index
 
+    return " ".join([word for word in unique.keys()])
 
 
 if __name__ == "__main__":
